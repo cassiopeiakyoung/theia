@@ -1,5 +1,5 @@
 import os, cv2, shutil, moviepy
-import final, image, audio
+import final, image, audio, dispatcher
 
 
 async def process_file(PathToFile, msg):
@@ -17,8 +17,9 @@ async def process_file(PathToFile, msg):
         cv2.imwrite(f'{folder}/{str(i)}.jpg', frame)
         i += 1
     
-    audioToBeSent = moviepy.editor.VideoFileClip(PathToFile).audio
-    audioToBeSent.write_audiofile(f'temp/AUDIO-SPLIT{msg.id}.mp3')
-    await audio.process_file(f'temp/AUDIO-SPLIT{msg.id}.mp3', msg)
+    if dispatcher.header_type(msg) == 'VIDEO':
+        audioToBeSent = moviepy.editor.VideoFileClip(PathToFile).audio
+        audioToBeSent.write_audiofile(f'temp/AUDIO-SPLIT{msg.id}.mp3')
+        await audio.process_file(f'temp/AUDIO-SPLIT{msg.id}.mp3', msg)
     
     #await image.process_file(msg, result)
