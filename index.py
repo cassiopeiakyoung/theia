@@ -15,7 +15,7 @@ async def on_ready():
     
 @client.event
 async def on_message(msg):
-    if msg.author.id != client.user.id and not msg.author.bot and msg.guild and checkLevel(msg.author) != 'none':
+    if msg.author.id != client.user.id and not msg.author.bot and msg.guild and checkLevel(msg.author) == 'none':
         
         if msg.attachments or msg.embeds or (msg.content.__contains__('cdn.') or msg.content.__contains__('media.')):
             await dispatch(msg)

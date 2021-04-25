@@ -23,3 +23,4 @@ async def process_file(PathToFile, msg):
         await audio.process_file(f'temp/AUDIO-SPLIT{msg.id}.mp3', msg)
     
     await image.process_files(folder, msg)
+    os.remove(PathToFile)
