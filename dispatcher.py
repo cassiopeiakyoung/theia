@@ -9,19 +9,15 @@ async def dispatch(msg: discord.Message):
         for attachment in msg.attachments:
             for attachment in msg.attachments:
                 header = header_type(attachment.url)
-                print('a', attachment.content_type)
+                print(f'[ATTACHMENT FOUND] type: {attachment.content_type}')
                 if header == 'VIDEO': 
-                    await save_attachment(attachment, msg)
-                    #video.process_file(saved, True)
+                    await video.process_file(await save_attachment(attachment, msg), msg)
                 elif header == 'GIF':
-                    await save_attachment(attachment, msg)
-                    #video.process_file(saved, False)
+                    await video.process_file(await save_attachment(attachment, msg), msg)
                 elif header == 'PICTURE':
-                    await save_attachment(attachment, msg)
-                    #image.process_file(saved)
+                    await image.process_file(await save_attachment(attachment, msg), msg)
                 elif header == 'AUDIO':
-                    #await save_attachment(attachment, msg)
-                    audio.process_file('temp/1.mp3', msg)
+                    await audio.process_file(await save_attachment(attachment, msg), msg)
                 else:
                     print('failed to get file type from attachment')
         
@@ -59,6 +55,7 @@ def header_type(msg: discord.Message):
 async def save_attachment(attachment, msg):
     if attachment.url and attachment.id:
         await attachment.save(f'temp/{msg.id}{attachment.filename}')
+        return(f'temp/{msg.id}{attachment.filename}')
     else:
         print('[ATTACHMENT SAVING] attachment save requested did not have a .url or a .id')
         

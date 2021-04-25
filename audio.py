@@ -1,31 +1,36 @@
-import speech_recognition as SpeechRec
-from pydub.silence import split_on_silence
+import speech_recognition as sr 
 from pydub import AudioSegment
-import os
+from pydub.silence import split_on_silence
+import os, shutil
 import final
 
-recognize = SpeechRec.Recognizer()
+r = sr.Recognizer()
 
-def process_file(PathToFile, msg):
+async def process_file(PathToFile, msg):
     result = ''
     
-    sound = AudioSegment.from_mp3(PathToFile)
-    spliced = split_on_silence(sound, min_silence_len = 500, silence_thresh = sound.dBFS-14, keep_silence = 500)
+    sound = AudioSegment.from_mp3(PathToFile)  
+    settings = split_on_silence(sound, min_silence_len = 500, silence_thresh = sound.dBFS-14, keep_silence = 500)
     folder = 'temp/spliced-'+(str(msg.id))
+
     os.mkdir(folder)
-    
-    for i, currentClip in enumerate(spliced, start = 1):
-        spliced_segment = os.path.join(folder, f'spliced{i}.wav')
-        currentClip.export(spliced_segment, format = 'wav')
-        
-        with SpeechRec.AudioFile(spliced_segment) as source:
-            clipFinished = recognize.record(source)
-            
+
+    for i, chunk in enumerate(settings, start=1):
+        filechunk = os.path.join(folder, f'chunk{i}.wav')
+        chunk.export(filechunk, format='wav')
+
+        with sr.AudioFile(filechunk) as source:
+            current = r.record(source)
+
             try:
-                currentConv  = SpeechRec.recognize_google(clipFinished)
-            except SpeechRec.UnknownValueError as error:
-                print(f'[AUDIO PROCESS] error:{str(error)}')
+                text = r.recognize_google(current)
+            except sr.UnknownValueError as Error:
+                print(f'[AUDIO PROCESS] error:{str(Error)}')
             else:
-                result += currentConv.lower()
+                text = f'{text.lower()} '
+                result += text
+    print(f'[AUDIO PROCESS] audio scanning complete, results for {msg.id}: {result}')
+    await final.scan_for_blacklisted_words(msg, result)
     
-    print(result)
+    shutil.rmtree(folder)
+    os.remove(PathToFile)
